@@ -21,4 +21,4 @@ libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.2.1"
 //https://mvnrepository.com/artifact/org.mongodb/casbah
 libraryDependencies += "org.mongodb" %% "casbah"% "3.1.1"
 
-
+libraryDependencies += "com.phasmidsoftware" %% "tableparser" % "1.0.14"
