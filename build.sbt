@@ -19,4 +19,4 @@ libraryDependencies += "org.apache.spark" %% "spark-mllib" % "3.2.1"
 // https://mvnrepository.com/artifact/org.apache.spark/spark-sql
 libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.2.1"
 
-
+libraryDependencies += "com.phasmidsoftware" %% "tableparser" % "1.0.14"
