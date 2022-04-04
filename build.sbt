@@ -20,3 +20,5 @@ libraryDependencies += "org.apache.spark" %% "spark-mllib" % "3.2.1"
 libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.2.1"
 
 libraryDependencies += "com.phasmidsoftware" %% "tableparser" % "1.0.14"
+libraryDependencies += "com.typesafe" % "config" % "1.4.2"
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
