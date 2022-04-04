@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
 libraryDependencies += "org.apache.spark" %% "spark-mllib" % "3.2.1"
 // https://mvnrepository.com/artifact/org.apache.spark/spark-sql
 libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.2.1"
-//https://mvnrepository.com/artifact/org.mongodb/casbah
-libraryDependencies += "org.mongodb" %% "casbah"% "3.1.1"
+//https://mvnrepository.com/artifact/org.mongodb.scala/mongo-scala-driver
+libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "4.2.3"
 
 libraryDependencies += "com.phasmidsoftware" %% "tableparser" % "1.0.14"
