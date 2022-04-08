@@ -20,5 +20,7 @@ libraryDependencies += "org.apache.spark" %% "spark-mllib" % "3.2.1"
 libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.2.1"
 //https://mvnrepository.com/artifact/org.mongodb.scala/mongo-scala-driver
 libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "4.2.3"
+//AWS S3 Bucket
+libraryDependencies += "com.amazonaws" % "aws-java-sdk" % "1.12.130"
 
 libraryDependencies += "com.phasmidsoftware" %% "tableparser" % "1.0.14"
