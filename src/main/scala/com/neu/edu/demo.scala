@@ -1,11 +1,11 @@
 package com.neu.edu
 
+import io.jvm.uuid.UUID
 import ml.dmlc.xgboost4j.scala.spark.{TrackerConf, XGBoostRegressionModel, XGBoostRegressor}
 import org.apache.spark.ml.feature.{OneHotEncoder, StringIndexer, VectorAssembler}
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
 import org.apache.spark.ml.evaluation.RegressionEvaluator
-
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types._
 
@@ -29,14 +29,14 @@ object demo {
       StructField("id", IntegerType, nullable = true),
       StructField("airline", StringType, nullable = true),
       StructField("flight", StringType, nullable = true),
-      StructField("source_city", StringType, nullable = true),
-      StructField("departure_time", StringType, nullable = true),
+      StructField("sourceCity", StringType, nullable = true),
+      StructField("departureTime", StringType, nullable = true),
       StructField("stops", StringType, nullable = true),
-      StructField("arrival_time", StringType, nullable = true),
-      StructField("destination_city", StringType, nullable = true),
-      StructField("class", StringType, nullable = true),
+      StructField("arrivalTime", StringType, nullable = true),
+      StructField("destinationCity", StringType, nullable = true),
+      StructField("classType", StringType, nullable = true),
       StructField("duration", DoubleType, nullable = true),
-      StructField("days_left", IntegerType, nullable = true),
+      StructField("daysLeft", IntegerType, nullable = true),
       StructField("price", IntegerType, nullable = true)))
 
     val rawInput = spark.read.schema(schema).option("header", value = true).csv(inputPath)
@@ -44,8 +44,8 @@ object demo {
 
     val pipeline = new Pipeline()
     // pipelines
-    val oneHotFeatures = Array("airline", "source_city", "departure_time", "stops", "arrival_time", "destination_city", "class")
-    val numericFeatures = Array("duration", "days_left")
+    val oneHotFeatures = Array("airline", "sourceCity", "departureTime", "stops", "arrivalTime", "destinationCity", "classType")
+    val numericFeatures = Array("duration", "daysLeft")
     val stagesArray = new ListBuffer[PipelineStage]()
     for (cate <- oneHotFeatures) {
       val indexer = new StringIndexer()
@@ -85,17 +85,33 @@ object demo {
     regressor.setFeaturesCol("features")
     regressor.setLabelCol("price")
     stagesArray.append(assembler)
-    stagesArray.append(regressor)
+
+
+
+
+
+
+
     pipeline.setStages(stagesArray.toArray)
 
     // split
     val Array(training, test) = rawInput.randomSplit(Array(0.8, 0.2)) // Split training and test set with radio 4/1
+
+    // Train the preprocessing model
+    val uuid = UUID.random
+
+    val preprocessModel = pipeline.fit(test)
+    preprocessModel.write.overwrite().save("./tmp/%s/preprocess_model".format(uuid))
+
+    stagesArray.append(regressor)
+
+    pipeline.setStages(stagesArray.toArray)
+
     println(s"trainingDF size=${training.count()},testDF size=${test.count()}")
     // train
     val model = pipeline.fit(training)
     val prediction = model.transform(test)
     prediction.show(false)
-
 
     val evaluator = new RegressionEvaluator() // Have to use regression evaluator rather than classification evaluator
     evaluator.setLabelCol("price")
@@ -123,7 +139,9 @@ object demo {
     println("The training summary of best XGBoostRegressionModel : " +
       bestModel.summary)
 
-
+    import io.jvm.uuid._
+//    pipeline.write.overwrite().save("./tmp/%s/pipeline_trained".format(uuid))
+    bestModel.write.overwrite().save("./tmp/%s/best_model".format(uuid))
     bestModel.nativeBooster.saveModel(modelPath)
 
     //    //     ML pipeline persistence
