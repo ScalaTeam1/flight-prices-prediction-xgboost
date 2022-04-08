@@ -32,4 +32,4 @@ project/plugins/project/
 **/*.iml
 
 tmp
-.bsp
+.bsp/*
