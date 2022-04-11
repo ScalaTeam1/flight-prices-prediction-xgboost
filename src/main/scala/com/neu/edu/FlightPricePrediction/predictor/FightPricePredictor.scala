@@ -1,11 +1,13 @@
-package com.neu.edu.predictor
+package com.neu.edu.FlightPricePrediction.predictor
 
-import com.neu.edu.{Flight, FlightReader}
-import com.neu.edu.configure.Constants._
+import com.neu.edu.FlightPricePrediction.configure.Constants._
+import com.neu.edu.FlightPricePrediction.db.MongoDBUtils
+import com.neu.edu.FlightPricePrediction.pojo.{Flight, FlightReader}
 import com.typesafe.config.ConfigFactory
 import ml.dmlc.xgboost4j.scala.spark.XGBoostRegressionModel
-import org.apache.spark.ml.{PipelineModel}
+import org.apache.spark.ml.PipelineModel
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
+import org.joda.time.DateTime
 
 import scala.util.Try
 /**
@@ -31,7 +33,7 @@ object FightPricePredictor extends App {
 
   val persistenceConfig = config.getConfig(PERSISTENCE_CONFIG_PREFIX)
   val modelPath = persistenceConfig.getString(MODEL_PATH).format(modelId)
-  val dataPath = persistenceConfig.getString(TRAINING_DATA_PATH)
+  val dataPath = persistenceConfig.getString(INPUT_DATA_PATH)
   val preprocessorPath = persistenceConfig.getString(PREPROCESSOR_PATH).format(modelId)
 
   val sparkConfig = ConfigFactory.load(CONFIG_LOCATION).getConfig(SPARK_CONFIG_PREFIX)

@@ -1,4 +1,4 @@
-package com.neu.edu.trainer
+package com.neu.edu.FlightPricePrediction.trainer
 
 /**
  * @author Caspar

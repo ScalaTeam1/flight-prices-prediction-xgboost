@@ -1,7 +1,7 @@
-package com.neu.edu.trainer
+package com.neu.edu.FlightPricePrediction.trainer
 
-import com.neu.edu.{Flight, FlightReader}
-import com.neu.edu.configure.Constants._
+import com.neu.edu.FlightPricePrediction.configure.Constants._
+import com.neu.edu.FlightPricePrediction.pojo.{Flight, FlightReader}
 import com.typesafe.config.ConfigFactory
 import io.jvm.uuid.UUID
 import ml.dmlc.xgboost4j.scala.spark.{TrackerConf, XGBoostRegressionModel, XGBoostRegressor}

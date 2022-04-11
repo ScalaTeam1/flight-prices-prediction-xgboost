@@ -1,4 +1,4 @@
-package com.neu.edu.configure
+package com.neu.edu.FlightPricePrediction.configure
 
 /**
  * @author Caspar
@@ -20,5 +20,12 @@ object Constants {
 
   final val MODEL_ID = "model-id"
   final val TRAINING_DATA_PATH = "training-data-path"
+  final val INPUT_DATA_PATH = "input-data-path"
+  // MongoDB
+  final val MONGODB_CONFIG_PREFIX = "com.ram.batch.mongodb"
+  final val MONGODB_HOST = "host"
+  final val MONGODB_URI = "uri"
+  final val MONGODB_PASSWORD = "password"
+  final val MONGODB_USERNAME = "username"
 
 }

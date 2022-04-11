@@ -1,4 +1,4 @@
-package com.neu.edu.predictor
+package com.neu.edu.FlightPricePrediction.predictor
 
 import org.apache.spark.sql.{DataFrame, Dataset}
 

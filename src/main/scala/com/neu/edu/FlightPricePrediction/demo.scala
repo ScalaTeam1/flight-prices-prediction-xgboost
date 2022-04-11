@@ -1,4 +1,4 @@
-package com.neu.edu
+package com.neu.edu.FlightPricePrediction
 
 import io.jvm.uuid.UUID
 import ml.dmlc.xgboost4j.scala.spark.{TrackerConf, XGBoostRegressionModel, XGBoostRegressor}

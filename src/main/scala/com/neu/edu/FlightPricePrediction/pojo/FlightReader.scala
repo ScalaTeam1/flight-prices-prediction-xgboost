@@ -1,4 +1,4 @@
-package com.neu.edu
+package com.neu.edu.FlightPricePrediction.pojo
 
 import com.phasmidsoftware.table.Table
 import org.apache.spark.sql.{Dataset, SparkSession}
