@@ -195,6 +195,7 @@ object FlightPriceTrainer extends App{
   }
 
   val ds = loadDataNative(dataPath)
+//  val ds = loadDataTableParser(dataPath)
 
   val trainer = FlightPriceTrainer(modelId, ds)
 
