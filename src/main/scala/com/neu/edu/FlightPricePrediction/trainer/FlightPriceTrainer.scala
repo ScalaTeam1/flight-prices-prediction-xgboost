@@ -71,11 +71,6 @@ class FlightPriceTrainer(modelId: String, ds: Dataset[Flight]) {
     regressor
   }
 
-  val trainerStages = {
-    preprocessorStages.append(regressor)
-    preprocessorStages
-  }
-
   def preprocessorPipeline = {
     val pipeline = new Pipeline()
     pipeline.setStages(preprocessorStages.toArray)
@@ -100,7 +95,9 @@ class FlightPriceTrainer(modelId: String, ds: Dataset[Flight]) {
   def fitModel = {
     val Array(training, test) = ds.randomSplit(Array(0.8, 0.2))
     logger.info("Start to train regression model for $modelId")
-    val pipeline = getPipeline(trainerStages)
+    val predictStages = preprocessorStages.clone()
+    predictStages.append(regressor)
+    val pipeline = getPipeline(predictStages)
     val model = pipeline.fit(training)
     val prediction = model.transform(test)
     logger.info("Succeed to train regression model for $modelId")
