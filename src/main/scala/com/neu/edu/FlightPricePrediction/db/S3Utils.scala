@@ -1,5 +1,7 @@
 package com.neu.edu.FlightPricePrediction.db
 
+import com.neu.edu.FlightPricePrediction.configure.Constants.{CONFIG_LOCATION, S3_ACCESSKEY, S3_CONFIG_PREFIX, S3_ENDPOINT, S3_SECRETKEY}
+import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.IOUtils
 
 import java.io.{ByteArrayInputStream, FileOutputStream}
@@ -11,10 +13,14 @@ import java.nio.file.{Files, Paths}
 
 object MinioOps {
 
+  val config = ConfigFactory.load(CONFIG_LOCATION)
+  val s3Config = config.getConfig(S3_CONFIG_PREFIX)
+  val endpoint = s3Config.getString(S3_ENDPOINT)
+  val accessKey = s3Config.getString(S3_ACCESSKEY)
+  val secretKey = s3Config.getString(S3_SECRETKEY)
+
   // minio client with access key and secret key
-  val minioClient = new MinioClient("http://localhost:9000",
-    "minioadmin",
-    "minioadmin")
+  val minioClient = new MinioClient(endpoint, accessKey, secretKey)
 
   /**
    * Put object into minio storage

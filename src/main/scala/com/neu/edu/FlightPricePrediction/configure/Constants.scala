@@ -27,5 +27,10 @@ object Constants {
   final val MONGODB_URI = "uri"
   final val MONGODB_PASSWORD = "password"
   final val MONGODB_USERNAME = "username"
+  //S3
+  final val S3_CONFIG_PREFIX = "com.ram.batch.s3"
+  final val S3_ENDPOINT="endpoint"
+  final val S3_ACCESSKEY="accessKey"
+  final val S3_SECRETKEY="secretKey"
 
 }
