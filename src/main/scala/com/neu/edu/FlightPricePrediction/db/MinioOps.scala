@@ -68,9 +68,6 @@ object MinioOps {
   def delete(bucket: String, id: String): Unit = {
     // remove object
     minioClient.removeObject(bucket, id)
-
-    // get size of the bucket
-    println(List(minioClient.listObjects(bucket)).size)
   }
 
   def putFile(bucket: String, id: String, filePath: String) = {
@@ -86,6 +83,12 @@ object MinioOps {
     }
     Using (new FileOutputStream(new File(saveDirPath + "/" + fileName))) {
       out => org.apache.commons.io.IOUtils.copy(minioClient.getObject(bucket, id), out)
+    }
+  }
+
+  def deleteFile(bucket: String, id: String) = {
+    Try{
+      delete(bucket,id)
     }
   }
 

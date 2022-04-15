@@ -26,4 +26,18 @@ class MongoDBUtilsTest extends AnyFlatSpec with Matchers  {
       case Success(x) =>
     }
   }
+
+  it should "work for update from collection Flights" in {
+    val res = MongoDBUtils.updateFlights(org.mongodb.scala.model.Filters.equal("id", 1),org.mongodb.scala.model.Updates.set("flight","updateFlight"))
+    res should matchPattern {
+      case Success(x) =>
+    }
+  }
+
+  it should "work for delete from collection Flights" in {
+    val res = MongoDBUtils.deleteFlights(org.mongodb.scala.model.Filters.equal("id", 1))
+    res should matchPattern {
+      case Success(x) =>
+    }
+  }
 }

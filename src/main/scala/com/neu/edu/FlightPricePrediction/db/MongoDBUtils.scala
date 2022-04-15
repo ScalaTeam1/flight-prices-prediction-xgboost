@@ -8,7 +8,7 @@ import com.typesafe.config.ConfigFactory
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.result.InsertOneResult
+import org.mongodb.scala.result.{DeleteResult, InsertOneResult, UpdateResult}
 
 import scala.reflect.ClassTag
 import scala.util.{Try, Using}
@@ -41,6 +41,8 @@ object MongoDBUtils {
     }
   }
 
+  //Insert and Find
+
   def execInsert(f: MongoClient => SingleObservable[InsertOneResult]) = exec[InsertOneResult, SingleObservable[InsertOneResult]](f)
 
   def execFind[T](f: MongoClient => FindObservable[T]) = exec[T, FindObservable[T]](f)
@@ -56,5 +58,22 @@ object MongoDBUtils {
   def findFlights(filter: Bson) = find[Flight](filter, COLLECTION_FLIGHTS)
 
   def findModels(filter: Bson) = find[TrainedModel](filter, COLLECTION_MODEL)
+
+  //delete and update
+  def execUpdate(f: MongoClient => SingleObservable[UpdateResult]) = exec[UpdateResult,SingleObservable[UpdateResult]](f)
+
+  def execDelete(f: MongoClient => SingleObservable[DeleteResult]) = exec[DeleteResult,SingleObservable[DeleteResult]](f)
+
+  def update[T: ClassTag](filter: Bson, updateData: Bson, collection: String): Try[Seq[UpdateResult]] = execUpdate(x => getCollection[T](x,collection).updateOne(filter,updateData))
+
+  def delete[T: ClassTag](filter: Bson, collection: String): Try[Seq[DeleteResult]] =execDelete(x=>getCollection[T](x,collection).deleteOne(filter))
+
+  def updateFlights(filter: Bson, updateData: Bson)=update[Flight](filter,updateData,COLLECTION_FLIGHTS)
+
+  def updateModels(filter: Bson, updateData: Bson)=update[TrainedModel](filter,updateData,COLLECTION_MODEL)
+
+  def deleteFlights(filter: Bson)=delete[Flight](filter,COLLECTION_FLIGHTS)
+
+  def deleteModels(filter: Bson)=delete[TrainedModel](filter,COLLECTION_MODEL)
 
 }
