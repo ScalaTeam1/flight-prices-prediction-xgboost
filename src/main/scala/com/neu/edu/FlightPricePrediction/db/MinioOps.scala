@@ -4,12 +4,13 @@ import com.neu.edu.FlightPricePrediction.configure.Constants.{CONFIG_LOCATION, S
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.IOUtils
 
-import java.io.{ByteArrayInputStream, FileOutputStream}
+import java.io.{ByteArrayInputStream, File, FileOutputStream, IOException}
 import io.minio.MinioClient
+import io.minio.errors.InvalidBucketNameException
 
-import java.io.File
 import scala.util.{Failure, Success, Try, Using}
 import java.nio.file.{Files, Paths}
+import scala.util.control.NonFatal
 
 object MinioOps {
 
@@ -71,9 +72,10 @@ object MinioOps {
   }
 
   def putFile(bucket: String, id: String, filePath: String) = {
-    Try {
-      put(bucket, id, Files.readAllBytes(Paths.get(filePath)))
+    try Success(put(bucket, id, Files.readAllBytes(Paths.get(filePath)))) catch {
+      case NonFatal(e)=>Failure(MinioFileException(filePath,e))
     }
+
   }
 
   def getFile(bucket: String, id: String, saveDirPath: String, fileName: String) = {
@@ -81,8 +83,11 @@ object MinioOps {
     if (!dir.exists()) {
       dir.mkdir()
     }
-    Using (new FileOutputStream(new File(saveDirPath + "/" + fileName))) {
+    try Success( Using (new FileOutputStream(new File(saveDirPath + "/" + fileName))) {
       out => org.apache.commons.io.IOUtils.copy(minioClient.getObject(bucket, id), out)
+    }
+    ) catch {
+      case e:InvalidBucketNameException=>Failure(MinioBucketException(bucket,e))
     }
   }
 
@@ -95,3 +100,7 @@ object MinioOps {
 
 
 }
+
+case class MinioFileException(filePath: String, cause: Throwable) extends Exception(s"File not found from this path: $filePath",cause)
+
+case class MinioBucketException(bucketName: String, cause: Throwable) extends Exception(s"Bucket not exist with name $bucketName",cause)

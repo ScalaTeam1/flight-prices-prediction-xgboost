@@ -15,29 +15,41 @@ class MongoDBUtilsTest extends AnyFlatSpec with Matchers  {
 
   it should "work for insert into collection Flights" in {
     val flight = Flight(1, "airline", "flight", "sourcecity", "departureTIme", "stops", "arrivalTime", "destinationCity", "class", 2.1d, 1, 400)
-    MongoDBUtils.insertFlights(flight) should matchPattern {
-      case Success(_) =>
+    val insertRes = MongoDBUtils.insertFlights(flight)
+    insertRes match {
+      case Success(_) => {
+        val flights=MongoDBUtils.findFlights(org.mongodb.scala.model.Filters.equal("id", 1))
+        assert(flights.get.last.flight.equals("flight"))
+      }
     }
   }
 
   it should "work for query from collection Flights" in {
     val res = MongoDBUtils.findFlights(org.mongodb.scala.model.Filters.equal("id", 1))
-    res should matchPattern  {
-      case Success(x) =>
+    res  match  {
+      case Success(x) =>{
+        assert(res.get.last.flight.equals("flight"))
+      }
     }
   }
 
   it should "work for update from collection Flights" in {
     val res = MongoDBUtils.updateFlights(org.mongodb.scala.model.Filters.equal("id", 1),org.mongodb.scala.model.Updates.set("flight","updateFlight"))
-    res should matchPattern {
-      case Success(x) =>
+    res  match {
+      case Success(x) =>{
+        val flights=MongoDBUtils.findFlights(org.mongodb.scala.model.Filters.equal("id", 1))
+        assert(flights.get.last.flight.equals("updateFlight"))
+      }
     }
   }
 
   it should "work for delete from collection Flights" in {
     val res = MongoDBUtils.deleteFlights(org.mongodb.scala.model.Filters.equal("id", 1))
-    res should matchPattern {
-      case Success(x) =>
+    res  match {
+      case Success(x) =>{
+        val flights=MongoDBUtils.findFlights(org.mongodb.scala.model.Filters.equal("id", 1))
+        assert(flights.get.size==0)
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 package com.neu.edu.FlightPricePrediction.db
 
 import com.neu.edu.FlightPricePrediction.db.MinioOps.minioClient
+import org.scalatest.TryValues.convertTryToSuccessOrFailure
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -18,10 +19,6 @@ class MinioOpsTest extends AnyFlatSpec with Matchers{
     val inputPath = "./dataset/input.csv"
     val savePath = "./download"
     val putResult = MinioOps.putFile("test", "input.csv", inputPath)
-    putResult match {
-      case Success(_) =>
-      case Failure(throwable) => fail(throwable)
-    }
     val saveFile = "./download/input.csv"
     val getResult = MinioOps.getFile("test", "input.csv", savePath, "input.csv")
     getResult match {
@@ -29,8 +26,13 @@ class MinioOpsTest extends AnyFlatSpec with Matchers{
         assert(new File(saveFile).exists())
         assert(new File(saveFile).getFreeSpace()==new File(inputPath).getFreeSpace)
       }
-      case Failure(throwable) => fail(throwable)
     }
+  }
+
+  it should "Fail to find file" in {
+    val inputPath = "./dataset/input2.csv"
+    val putResult = MinioOps.putFile("test", "input.csv", inputPath)
+    putResult.failure.exception shouldBe a[MinioFileException]
   }
 
   it should "Succeed to delete file in minio" in {
@@ -43,7 +45,6 @@ class MinioOpsTest extends AnyFlatSpec with Matchers{
           case Failure(throwable) =>
         }
       }
-      case Failure(throwable) =>fail(throwable)
     }
   }
 }
