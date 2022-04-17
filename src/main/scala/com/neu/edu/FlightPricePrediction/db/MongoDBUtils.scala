@@ -64,9 +64,9 @@ object MongoDBUtils {
 
   def execDelete(f: MongoClient => SingleObservable[DeleteResult]) = exec[DeleteResult,SingleObservable[DeleteResult]](f)
 
-  def update[T: ClassTag](filter: Bson, updateData: Bson, collection: String): Try[Seq[UpdateResult]] = execUpdate(x => getCollection[T](x,collection).updateOne(filter,updateData))
+  def update[T: ClassTag](filter: Bson, updateData: Bson, collection: String): Try[Seq[UpdateResult]] = execUpdate(x => getCollection[T](x,collection).updateMany(filter,updateData))
 
-  def delete[T: ClassTag](filter: Bson, collection: String): Try[Seq[DeleteResult]] =execDelete(x=>getCollection[T](x,collection).deleteOne(filter))
+  def delete[T: ClassTag](filter: Bson, collection: String): Try[Seq[DeleteResult]] =execDelete(x=>getCollection[T](x,collection).deleteMany(filter))
 
   def updateFlights(filter: Bson, updateData: Bson)=update[Flight](filter,updateData,COLLECTION_FLIGHTS)
 

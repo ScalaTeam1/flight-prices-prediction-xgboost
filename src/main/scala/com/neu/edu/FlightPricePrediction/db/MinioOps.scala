@@ -6,10 +6,11 @@ import org.apache.commons.io.IOUtils
 
 import java.io.{ByteArrayInputStream, File, FileOutputStream, IOException}
 import io.minio.MinioClient
-import io.minio.errors.InvalidBucketNameException
+import io.minio.errors.{ErrorResponseException, InvalidBucketNameException}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.{Failure, Success, Try, Using}
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, NoSuchFileException, Paths}
 import scala.util.control.NonFatal
 
 object MinioOps {
@@ -23,6 +24,8 @@ object MinioOps {
   // minio client with access key and secret key
   val minioClient = new MinioClient(endpoint, accessKey, secretKey)
 
+  val logger: Logger = LoggerFactory.getLogger(getClass.getSimpleName)
+
   /**
    * Put object into minio storage
    *
@@ -34,6 +37,7 @@ object MinioOps {
     // create bucket if not exists
     if (!minioClient.bucketExists(bucket)) {
       minioClient.makeBucket(bucket)
+      logger.info(s"Bucket: $bucket created since it is not exist")
     }
 
     // put object
@@ -72,28 +76,52 @@ object MinioOps {
   }
 
   def putFile(bucket: String, id: String, filePath: String) = {
-    try Success(put(bucket, id, Files.readAllBytes(Paths.get(filePath)))) catch {
-      case NonFatal(e)=>Failure(MinioFileException(filePath,e))
+    Try {
+      put(bucket, id, Files.readAllBytes(Paths.get(filePath)))
     }
-
+    match {
+      case Success(a) =>Success(a)
+      case Failure(e: NoSuchFileException)=>{
+        logger.error(s"File not found at $filePath")
+        Failure(MinioFileException(filePath,e))
+      }
+    }
   }
+
 
   def getFile(bucket: String, id: String, saveDirPath: String, fileName: String) = {
     val dir = new File(saveDirPath)
     if (!dir.exists()) {
       dir.mkdir()
     }
-    try Success( Using (new FileOutputStream(new File(saveDirPath + "/" + fileName))) {
+      Using (new FileOutputStream(new File(saveDirPath + "/" + fileName))) {
       out => org.apache.commons.io.IOUtils.copy(minioClient.getObject(bucket, id), out)
-    }
-    ) catch {
-      case e:InvalidBucketNameException=>Failure(MinioBucketException(bucket,e))
-    }
+    } match {
+        case Success(value)=>Success(value)
+        case Failure(exception: ErrorResponseException)=>{
+          exception.errorResponse().code() match {
+            case "NoSuchKey" => {
+              logger.error(s"File $id not exist in Bucket $bucket")
+              Failure(MinioBucketFileNotFoundException(bucket,id,exception))
+            }
+            case "NoSuchBucket"=>{
+              logger.error(s"Buck: $bucket not exist")
+              Failure(MinioBucketException(bucket,exception))
+            }
+          }
+        }
+      }
   }
 
   def deleteFile(bucket: String, id: String) = {
-    Try{
-      delete(bucket,id)
+     Try{delete(bucket,id)}
+    match {
+       case Success(a)=>Success(a)
+       case Failure(e: ErrorResponseException)=>{
+         logger.error(s"Buck: $bucket not exist")
+         Failure(MinioBucketException(bucket,e))
+       }
+
     }
   }
 
@@ -104,3 +132,5 @@ object MinioOps {
 case class MinioFileException(filePath: String, cause: Throwable) extends Exception(s"File not found from this path: $filePath",cause)
 
 case class MinioBucketException(bucketName: String, cause: Throwable) extends Exception(s"Bucket not exist with name $bucketName",cause)
+
+case class MinioBucketFileNotFoundException(bucketName: String, fileName: String, cause: Throwable)extends Exception(s"File $fileName not exist in Bucket $bucketName",cause)
