@@ -94,34 +94,37 @@ object MinioOps {
     if (!dir.exists()) {
       dir.mkdir()
     }
+    if(!minioClient.bucketExists(bucket)) {
+      logger.error(s"Download Fail. Bucket $bucket not exist")
+      Failure(MinioBucketException(bucket))
+    }
+    else {
       Using (new FileOutputStream(new File(saveDirPath + "/" + fileName))) {
       out => org.apache.commons.io.IOUtils.copy(minioClient.getObject(bucket, id), out)
     } match {
         case Success(value)=>Success(value)
-        case Failure(exception: ErrorResponseException)=>{
-          exception.errorResponse().code() match {
-            case "NoSuchKey" => {
-              logger.error(s"File $id not exist in Bucket $bucket")
-              Failure(MinioBucketFileNotFoundException(bucket,id,exception))
-            }
-            case "NoSuchBucket"=>{
-              logger.error(s"Buck: $bucket not exist")
-              Failure(MinioBucketException(bucket,exception))
-            }
-          }
+        case Failure(exception: ErrorResponseException)=> {
+          logger.error(s"Download Fail. File $id not exist in Bucket $bucket")
+          Failure(MinioBucketFileNotFoundException(bucket, id, exception))
         }
       }
+    }
   }
 
   def deleteFile(bucket: String, id: String) = {
+    if(!minioClient.bucketExists(bucket)) {
+      logger.error(s"Delete Fail. Bucket $bucket not exist")
+      Failure(MinioBucketException(bucket))
+    }
+    else {
      Try{delete(bucket,id)}
     match {
        case Success(a)=>Success(a)
-       case Failure(e: ErrorResponseException)=>{
-         logger.error(s"Buck: $bucket not exist")
-         Failure(MinioBucketException(bucket,e))
+       case Failure(e)=>{
+         logger.error("Delete Failed")
+         Failure(e)
        }
-
+    }
     }
   }
 
@@ -131,6 +134,6 @@ object MinioOps {
 
 case class MinioFileException(filePath: String, cause: Throwable) extends Exception(s"File not found from this path: $filePath",cause)
 
-case class MinioBucketException(bucketName: String, cause: Throwable) extends Exception(s"Bucket not exist with name $bucketName",cause)
+case class MinioBucketException(bucketName: String) extends Exception(s"Bucket not exist with name $bucketName")
 
 case class MinioBucketFileNotFoundException(bucketName: String, fileName: String, cause: Throwable)extends Exception(s"File $fileName not exist in Bucket $bucketName",cause)
