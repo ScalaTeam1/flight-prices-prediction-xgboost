@@ -96,7 +96,7 @@ object MinioOps {
   def getFile(bucket: String, id: String, saveDirPath: String, fileName: String) = {
     val dir = new File(saveDirPath)
     if (!dir.exists()) {
-      dir.mkdir()
+      dir.mkdirs()
     }
     if(!minioClient.bucketExists(bucket)) {
       logger.error(s"Download Fail. Bucket $bucket not exist")
