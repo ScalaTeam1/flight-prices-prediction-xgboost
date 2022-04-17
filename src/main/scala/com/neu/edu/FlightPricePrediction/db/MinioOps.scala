@@ -82,8 +82,12 @@ object MinioOps {
     match {
       case Success(a) =>Success(a)
       case Failure(e: NoSuchFileException)=>{
-        logger.error(s"File not found at $filePath")
+        logger.error(s"Upload Fail. File not found at $filePath")
         Failure(MinioFileException(filePath,e))
+      }
+      case Failure(exception: Exception)=>{
+        logger.error(s"Upload Fail. Unknown Exception with message: ${exception.getMessage}")
+        Failure(exception)
       }
     }
   }
@@ -107,6 +111,10 @@ object MinioOps {
           logger.error(s"Download Fail. File $id not exist in Bucket $bucket")
           Failure(MinioBucketFileNotFoundException(bucket, id, exception))
         }
+        case Failure(exception: Exception)=>{
+          logger.error(s"Download Fail with unknown exception. Message:${exception.getMessage}")
+          Failure(exception)
+      }
       }
     }
   }
