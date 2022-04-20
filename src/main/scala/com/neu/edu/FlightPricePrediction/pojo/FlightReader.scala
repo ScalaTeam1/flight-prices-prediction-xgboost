@@ -18,21 +18,13 @@ case class FlightReader(resource: String) {
   import spark.implicits._
 
   private val mty: Try[Table[Flight]] = Table.parseFile[Table[Flight]](resource)
-  val dy: Try[Dataset[Flight]] = mty map {
-    mt =>
-      println(s"Flight table has ${mt.size} rows")
-      spark.createDataset(mt.rows.toSeq)
+  val dy: Try[Dataset[Flight]] = mty map { mt =>
+    println(s"Flight table has ${mt.size} rows")
+    spark.createDataset(mt.rows.toSeq)
   }
 
 }
 
-
 object FlightReader extends App {
   def apply(resource: String): FlightReader = new FlightReader(resource)
-
-
-  private val path = "/Users/arronshentu/Downloads/final/src/main/resources/test.csv"
-  apply(path).dy foreach {
-    d => d.show(false)
-  }
 }
