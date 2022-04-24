@@ -16,7 +16,12 @@ import org.bson.codecs.configuration.CodecRegistries.{
 }
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.result.{DeleteResult, InsertOneResult, UpdateResult}
+import org.mongodb.scala.result.{
+  DeleteResult,
+  InsertManyResult,
+  InsertOneResult,
+  UpdateResult
+}
 
 import scala.reflect.ClassTag
 import scala.util.{Try, Using}
@@ -56,6 +61,9 @@ object MongoDBUtils {
   def execInsert(f: MongoClient => SingleObservable[InsertOneResult]) =
     exec[InsertOneResult, SingleObservable[InsertOneResult]](f)
 
+  def execInsertMany(f: MongoClient => Observable[InsertManyResult]) =
+    exec[InsertManyResult, Observable[InsertManyResult]](f)
+
   def execFind[T](f: MongoClient => FindObservable[T]) =
     exec[T, FindObservable[T]](f)
 
@@ -64,6 +72,13 @@ object MongoDBUtils {
       collection: String
   ): Try[Seq[InsertOneResult]] =
     execInsert(x => getCollection[T](x, collection).insertOne(doc))
+
+  def insertMany[T: ClassTag](
+      docs: Seq[T],
+      collection: String
+  ): Try[Seq[InsertManyResult]] = {
+    execInsertMany(x => getCollection[T](x, collection).insertMany(docs))
+  }
 
   def find[T: ClassTag](filter: Bson, collection: String): Try[Seq[T]] =
     execFind[T](x =>
