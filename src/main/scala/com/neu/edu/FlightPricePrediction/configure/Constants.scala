@@ -1,12 +1,11 @@
 package com.neu.edu.FlightPricePrediction.configure
 
-/**
- * @author Caspar
- * @date 2022/4/7 01:56 
- */
+/** @author Caspar
+  * @date 2022/4/7 01:56
+  */
 object Constants {
 
-  final val CONFIG_LOCATION= "application.conf"
+  final val CONFIG_LOCATION = "application.conf"
   final val PREDICTOR_CONFIG_PREFIX = "com.ram.batch.predictor"
   final val TRAINER_CONFIG_PREFIX = "com.ram.batch.trainer"
   final val PERSISTENCE_CONFIG_PREFIX = "com.ram.batch.persistence"
@@ -27,5 +26,10 @@ object Constants {
   final val MONGODB_URI = "uri"
   final val MONGODB_PASSWORD = "password"
   final val MONGODB_USERNAME = "username"
+  //S3
+  final val S3_CONFIG_PREFIX = "com.ram.batch.s3"
+  final val S3_ENDPOINT = "endpoint"
+  final val S3_ACCESSKEY = "accessKey"
+  final val S3_SECRETKEY = "secretKey"
 
 }

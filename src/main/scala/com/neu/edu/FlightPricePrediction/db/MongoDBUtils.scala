@@ -1,14 +1,27 @@
 package com.neu.edu.FlightPricePrediction.db
 
-import org.mongodb.scala.{FindObservable, MongoClient, Observable, SingleObservable}
+import org.mongodb.scala.{
+  FindObservable,
+  MongoClient,
+  Observable,
+  SingleObservable
+}
 import com.neu.edu.FlightPricePrediction.configure.Constants._
 import com.neu.edu.FlightPricePrediction.db.Helpers.GenericObservable
 import com.neu.edu.FlightPricePrediction.pojo.{Flight, TrainedModel}
 import com.typesafe.config.ConfigFactory
-import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
+import org.bson.codecs.configuration.CodecRegistries.{
+  fromProviders,
+  fromRegistries
+}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.result.InsertOneResult
+import org.mongodb.scala.result.{
+  DeleteResult,
+  InsertManyResult,
+  InsertOneResult,
+  UpdateResult
+}
 
 import scala.reflect.ClassTag
 import scala.util.{Try, Using}
@@ -33,28 +46,85 @@ object MongoDBUtils {
 
   def getClient = MongoClient.apply(mongodbUri)
 
-  def getCollection[T: ClassTag](client: MongoClient, collection: String) = client.getDatabase(DATABASE_FLIGHT_PRICE).getCollection[T](collection).withCodecRegistry(codecRegistry)
+  def getCollection[T: ClassTag](client: MongoClient, collection: String) =
+    client
+      .getDatabase(DATABASE_FLIGHT_PRICE)
+      .getCollection[T](collection)
+      .withCodecRegistry(codecRegistry)
 
-  def exec[R, T<: Observable[R]](f: MongoClient => T) = {
-    Using (getClient) {
-      c => f(c).results
+  def exec[R, T <: Observable[R]](f: MongoClient => T) = {
+    Using(getClient) { c =>
+      f(c).results
     }
   }
 
-  def execInsert(f: MongoClient => SingleObservable[InsertOneResult]) = exec[InsertOneResult, SingleObservable[InsertOneResult]](f)
+  def execInsert(f: MongoClient => SingleObservable[InsertOneResult]) =
+    exec[InsertOneResult, SingleObservable[InsertOneResult]](f)
 
-  def execFind[T](f: MongoClient => FindObservable[T]) = exec[T, FindObservable[T]](f)
+  def execInsertMany(f: MongoClient => Observable[InsertManyResult]) =
+    exec[InsertManyResult, Observable[InsertManyResult]](f)
 
-  def insert[T: ClassTag](doc: T, collection: String): Try[Seq[InsertOneResult]] = execInsert(x => getCollection[T](x, collection).insertOne(doc))
+  def execFind[T](f: MongoClient => FindObservable[T]) =
+    exec[T, FindObservable[T]](f)
 
-  def find[T: ClassTag](filter: Bson, collection: String): Try[Seq[T]] = execFind[T](x => if (Nil equals filter) getCollection[T](x, collection).find() else getCollection[T](x, collection).find(filter))
+  def insert[T: ClassTag](
+      doc: T,
+      collection: String
+  ): Try[Seq[InsertOneResult]] =
+    execInsert(x => getCollection[T](x, collection).insertOne(doc))
+
+  def insertMany[T: ClassTag](
+      docs: Seq[T],
+      collection: String
+  ): Try[Seq[InsertManyResult]] = {
+    execInsertMany(x => getCollection[T](x, collection).insertMany(docs))
+  }
+
+  def find[T: ClassTag](filter: Bson, collection: String): Try[Seq[T]] =
+    execFind[T](x =>
+      if (Nil equals filter) getCollection[T](x, collection).find()
+      else getCollection[T](x, collection).find(filter)
+    )
 
   def insertFlights(flight: Flight) = insert[Flight](flight, COLLECTION_FLIGHTS)
 
-  def insertModels(fpModel: TrainedModel) = insert[TrainedModel](fpModel, COLLECTION_MODEL)
+  def insertModels(fpModel: TrainedModel) =
+    insert[TrainedModel](fpModel, COLLECTION_MODEL)
 
   def findFlights(filter: Bson) = find[Flight](filter, COLLECTION_FLIGHTS)
 
   def findModels(filter: Bson) = find[TrainedModel](filter, COLLECTION_MODEL)
+
+  //delete and update
+  def execUpdate(f: MongoClient => SingleObservable[UpdateResult]) =
+    exec[UpdateResult, SingleObservable[UpdateResult]](f)
+
+  def execDelete(f: MongoClient => SingleObservable[DeleteResult]) =
+    exec[DeleteResult, SingleObservable[DeleteResult]](f)
+
+  def update[T: ClassTag](
+      filter: Bson,
+      updateData: Bson,
+      collection: String
+  ): Try[Seq[UpdateResult]] = execUpdate(x =>
+    getCollection[T](x, collection).updateMany(filter, updateData)
+  )
+
+  def delete[T: ClassTag](
+      filter: Bson,
+      collection: String
+  ): Try[Seq[DeleteResult]] =
+    execDelete(x => getCollection[T](x, collection).deleteMany(filter))
+
+  def updateFlights(filter: Bson, updateData: Bson) =
+    update[Flight](filter, updateData, COLLECTION_FLIGHTS)
+
+  def updateModels(filter: Bson, updateData: Bson) =
+    update[TrainedModel](filter, updateData, COLLECTION_MODEL)
+
+  def deleteFlights(filter: Bson) = delete[Flight](filter, COLLECTION_FLIGHTS)
+
+  def deleteModels(filter: Bson) =
+    delete[TrainedModel](filter, COLLECTION_MODEL)
 
 }
