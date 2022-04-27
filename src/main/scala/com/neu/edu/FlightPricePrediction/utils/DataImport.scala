@@ -33,8 +33,10 @@ object DataImport extends App {
     .getOrCreate()
   logger.info(s"Start to read data from local csv files: $dataPath.")
   val ds: Dataset[Flight] = FlightPriceTrainer.loadDataNative(spark, dataPath)
+  logger.info(s"Ready to insert ${ds.collect().size} data points!")
   logger.info(s"Succeed to load data from local csv files: $dataPath.")
   val flightWithDates: Seq[FlightWithDate] =
     ds.collect().map(FlightWithDate.toFlightWithDate(_)).toSeq
-  MongoDBUtils.insertManyFlightWithDates(flightWithDates)
+  val res = MongoDBUtils.insertManyFlightWithDates(flightWithDates)
+  logger.info("Ok")
 }

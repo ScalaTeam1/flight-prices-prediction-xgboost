@@ -21,8 +21,6 @@ import org.bson.codecs.configuration.CodecRegistries.{
 }
 import org.bson.conversions.Bson
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.BsonDocument
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.result.{
   DeleteResult,
   InsertManyResult,
@@ -35,7 +33,10 @@ import scala.util.{Try, Using}
 import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.model.Filters.equal
 
+import java.util.concurrent.locks.{Lock, ReentrantLock}
+
 object MongoDBUtils {
+  private val rtl: Lock = new ReentrantLock()
 
   val config = ConfigFactory.load(CONFIG_LOCATION)
   val mongodbConfig = config.getConfig(MONGODB_CONFIG_PREFIX)
@@ -65,9 +66,12 @@ object MongoDBUtils {
       .withCodecRegistry(codecRegistry)
 
   def exec[R, T <: Observable[R]](f: MongoClient => T) = {
-    Using(getClient) { c =>
+    rtl.lock()
+    val r = Using(getClient) { c =>
       f(c).results
     }
+    rtl.unlock()
+    r
   }
 
   def execInsert(f: MongoClient => SingleObservable[InsertOneResult]) =
@@ -126,8 +130,18 @@ object MongoDBUtils {
   def insertFlightWithDates(flightWithDate: FlightWithDate) =
     insert[FlightWithDate](flightWithDate, COLLECTION_FLIGHTS)
 
-  def insertManyFlightWithDates(flightWithDates: Seq[FlightWithDate]) =
+  def insertManyFlightWithDates(flightWithDates: Seq[FlightWithDate]) = {
+    val chunksSize = 100000
+    val parts: Iterable[Seq[(FlightWithDate, Int)]] =
+      flightWithDates.zipWithIndex
+        .groupBy(_._2 / chunksSize)
+        .values
+    for (p: Seq[(FlightWithDate, Int)] <- parts) {
+      insertMany[FlightWithDate](p.map(_._1), COLLECTION_FLIGHTS)
+    }
+
     insertMany[FlightWithDate](flightWithDates, COLLECTION_FLIGHTS)
+  }
 
   def insertModels(fpModel: TrainedModel) =
     insert[TrainedModel](fpModel, COLLECTION_MODEL)

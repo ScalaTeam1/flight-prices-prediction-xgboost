@@ -4,7 +4,8 @@ LABEL maintainer="Caspar" \
     email="chen.luo1@northeastern.edu"
 
 USER root
-
+RUN apt-get update -y
+RUN apt-get install -y libgomp1
 COPY . /app
 WORKDIR ./app
 

@@ -1,1 +1,1 @@
-docker build . -f docker/DockerfileCrawler -t csye7200-trainer:1.0
+docker build . -f docker/Dockerfile -t csye7200-trainer:1.0
