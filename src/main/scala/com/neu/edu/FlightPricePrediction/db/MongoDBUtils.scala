@@ -8,13 +8,20 @@ import org.mongodb.scala.{
 }
 import com.neu.edu.FlightPricePrediction.configure.Constants._
 import com.neu.edu.FlightPricePrediction.db.Helpers.GenericObservable
-import com.neu.edu.FlightPricePrediction.pojo.{Flight, TrainedModel}
+import com.neu.edu.FlightPricePrediction.pojo.{
+  Flight,
+  FlightWithDate,
+  TrainedModel
+}
 import com.typesafe.config.ConfigFactory
+import org.bson.BsonDocument
 import org.bson.codecs.configuration.CodecRegistries.{
   fromProviders,
   fromRegistries
 }
+import org.bson.conversions.Bson
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
+import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.result.{
   DeleteResult,
@@ -26,6 +33,7 @@ import org.mongodb.scala.result.{
 import scala.reflect.ClassTag
 import scala.util.{Try, Using}
 import org.mongodb.scala.bson.codecs.Macros._
+import org.mongodb.scala.model.Filters.equal
 
 object MongoDBUtils {
 
@@ -39,7 +47,11 @@ object MongoDBUtils {
   final val COLLECTION_MODEL = "models"
   final val COLLECTION_FLIGHTS = "flights"
 
-  private val codecs = fromProviders(classOf[Flight], classOf[TrainedModel])
+  private val codecs = fromProviders(
+    classOf[Flight],
+    classOf[TrainedModel],
+    classOf[FlightWithDate]
+  )
   private val codecRegistry = fromRegistries(codecs, DEFAULT_CODEC_REGISTRY)
 
   val mongodbUri = uri.format(username, passwd, host)
@@ -86,7 +98,36 @@ object MongoDBUtils {
       else getCollection[T](x, collection).find(filter)
     )
 
+  def findByOrder[T: ClassTag](
+      filter: Bson,
+      order: Bson,
+      limit: Int,
+      collection: String
+  ): Try[Seq[T]] =
+    execFind[T](x =>
+      if (Nil equals filter)
+        getCollection[T](x, collection).find().sort(order).limit(limit)
+      else getCollection[T](x, collection).find(filter).sort(order).limit(limit)
+    )
+
+  def retrieveTrainingData(num: Int) =
+    findByOrder[Flight](
+      new BsonDocument,
+      equal("timestamp", -1),
+      num,
+      COLLECTION_FLIGHTS
+    )
+
   def insertFlights(flight: Flight) = insert[Flight](flight, COLLECTION_FLIGHTS)
+
+  def insertManyFlights(flights: Seq[Flight]) =
+    insertMany[Flight](flights, COLLECTION_FLIGHTS)
+
+  def insertFlightWithDates(flightWithDate: FlightWithDate) =
+    insert[FlightWithDate](flightWithDate, COLLECTION_FLIGHTS)
+
+  def insertManyFlightWithDates(flightWithDates: Seq[FlightWithDate]) =
+    insertMany[FlightWithDate](flightWithDates, COLLECTION_FLIGHTS)
 
   def insertModels(fpModel: TrainedModel) =
     insert[TrainedModel](fpModel, COLLECTION_MODEL)

@@ -35,14 +35,7 @@ case class IterableFlightReader(resource: Seq[Flight]) {
 
   import spark.implicits._
 
-  //  private val mty: Try[Table[Flight]] =
   val dy: Dataset[Flight] = spark.createDataset(resource)
-  //  mty map {
-  //    mt =>
-  //      println(s"Flight table has ${mt.size} rows")
-  //      spark.createDataset(mt.rows.toSeq)
-  //  }
-  //}
 }
 
 object FlightReader extends App {

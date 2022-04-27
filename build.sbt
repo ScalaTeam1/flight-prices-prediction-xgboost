@@ -1,11 +1,17 @@
-name := "final"
+name := "flight-price-core"
 
 version := "0.1"
 
 scalaVersion := "2.12.8"
 
-
-scalacOptions in(Compile, doc) ++= Seq("-groups", "-implicits", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused")
+scalacOptions in (Compile, doc) ++= Seq(
+  "-groups",
+  "-implicits",
+  "-deprecation",
+  "-Ywarn-dead-code",
+  "-Ywarn-value-discard",
+  "-Ywarn-unused"
+)
 scalacOptions ++= Seq("-encoding", "UTF-8")
 
 libraryDependencies ++= Seq(

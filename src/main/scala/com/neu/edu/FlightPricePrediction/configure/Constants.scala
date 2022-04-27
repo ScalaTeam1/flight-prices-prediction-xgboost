@@ -13,7 +13,9 @@ object Constants {
   final val MODEL_PATH = "model-path"
   final val PREPROCESSOR_PATH = "preprocess-model-path"
   final val APP_NAME = "app-name"
-
+  final val PARENT_DIRECTORY = "parent-directory"
+  final val S3_BUCKET = "bucket"
+  final val TRAINING_SET_SIZE = "data-size"
   final val SPARK_MASTER = "spark.master"
   final val SPARK_LOCAL = "local"
 
