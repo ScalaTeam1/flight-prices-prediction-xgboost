@@ -18,7 +18,6 @@ import ml.dmlc.xgboost4j.scala.spark.{
   XGBoostRegressionModel,
   XGBoostRegressor
 }
-import org.mongodb.scala.model.Filters.equal
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
 import org.apache.spark.ml.feature.{

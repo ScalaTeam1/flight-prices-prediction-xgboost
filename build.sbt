@@ -37,3 +37,7 @@ libraryDependencies += "io.jvm.uuid" %% "scala-uuid" % "0.3.1"
 libraryDependencies += "org.zeroturnaround" % "zt-zip" % "1.15"
 libraryDependencies += "io.minio" % "minio" % "6.0.13"
 libraryDependencies += "commons-io" % "commons-io" % "2.5"
+
+mainClass in (Compile, run) := Some(
+  "com.neu.edu.FlightPricePrediction.trainer.FlightPriceTrainer"
+)
