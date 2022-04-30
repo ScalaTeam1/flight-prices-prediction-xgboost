@@ -31,6 +31,35 @@ object Flight extends TableParserHelper[Flight]() {
       destinationCity: String,
       classType: String,
       duration: Double,
+      daysLeft: Int
+  ): Flight = {
+    apply(
+      id,
+      airline,
+      flight,
+      sourceCity,
+      departureTime,
+      stops,
+      arrivalTime,
+      destinationCity,
+      classType,
+      duration,
+      daysLeft,
+      0
+    )
+  }
+
+  def apply(
+      id: Any,
+      airline: String,
+      flight: String,
+      sourceCity: String,
+      departureTime: String,
+      stops: String,
+      arrivalTime: String,
+      destinationCity: String,
+      classType: String,
+      duration: Double,
       daysLeft: Int,
       price: Int
   ): Flight = id match {

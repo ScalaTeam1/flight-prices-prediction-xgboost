@@ -22,7 +22,20 @@ case class FlightReader(resource: String) {
     println(s"Flight table has ${mt.size} rows")
     spark.createDataset(mt.rows.toSeq)
   }
+}
 
+case class IterableFlightReader(resource: Seq[Flight]) {
+  val spark: SparkSession = SparkSession
+    .builder()
+    .appName("xiangdangdang")
+    .master("local[*]")
+    .getOrCreate()
+
+  spark.sparkContext.setLogLevel("ERROR")
+
+  import spark.implicits._
+
+  val dy: Dataset[Flight] = spark.createDataset(resource)
 }
 
 object FlightReader extends App {

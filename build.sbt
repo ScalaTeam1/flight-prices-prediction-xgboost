@@ -1,11 +1,17 @@
-name := "final"
+name := "flight-price-core"
 
 version := "0.1"
 
 scalaVersion := "2.12.8"
 
-
-scalacOptions in(Compile, doc) ++= Seq("-groups", "-implicits", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused")
+scalacOptions in (Compile, doc) ++= Seq(
+  "-groups",
+  "-implicits",
+  "-deprecation",
+  "-Ywarn-dead-code",
+  "-Ywarn-value-discard",
+  "-Ywarn-unused"
+)
 scalacOptions ++= Seq("-encoding", "UTF-8")
 
 libraryDependencies ++= Seq(
@@ -31,3 +37,7 @@ libraryDependencies += "io.jvm.uuid" %% "scala-uuid" % "0.3.1"
 libraryDependencies += "org.zeroturnaround" % "zt-zip" % "1.15"
 libraryDependencies += "io.minio" % "minio" % "6.0.13"
 libraryDependencies += "commons-io" % "commons-io" % "2.5"
+
+mainClass in (Compile, run) := Some(
+  "com.neu.edu.FlightPricePrediction.trainer.FlightPriceTrainer"
+)

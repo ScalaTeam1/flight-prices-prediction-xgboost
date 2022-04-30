@@ -8,21 +8,35 @@ import org.mongodb.scala.{
 }
 import com.neu.edu.FlightPricePrediction.configure.Constants._
 import com.neu.edu.FlightPricePrediction.db.Helpers.GenericObservable
-import com.neu.edu.FlightPricePrediction.pojo.{Flight, TrainedModel}
+import com.neu.edu.FlightPricePrediction.pojo.{
+  Flight,
+  FlightWithDate,
+  TrainedModel
+}
 import com.typesafe.config.ConfigFactory
+import org.bson.BsonDocument
 import org.bson.codecs.configuration.CodecRegistries.{
   fromProviders,
   fromRegistries
 }
+import org.bson.conversions.Bson
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.result.{DeleteResult, InsertOneResult, UpdateResult}
+import org.mongodb.scala.result.{
+  DeleteResult,
+  InsertManyResult,
+  InsertOneResult,
+  UpdateResult
+}
 
 import scala.reflect.ClassTag
 import scala.util.{Try, Using}
 import org.mongodb.scala.bson.codecs.Macros._
+import org.mongodb.scala.model.Filters.equal
+
+import java.util.concurrent.locks.{Lock, ReentrantLock}
 
 object MongoDBUtils {
+  private val rtl: Lock = new ReentrantLock()
 
   val config = ConfigFactory.load(CONFIG_LOCATION)
   val mongodbConfig = config.getConfig(MONGODB_CONFIG_PREFIX)
@@ -34,7 +48,11 @@ object MongoDBUtils {
   final val COLLECTION_MODEL = "models"
   final val COLLECTION_FLIGHTS = "flights"
 
-  private val codecs = fromProviders(classOf[Flight], classOf[TrainedModel])
+  private val codecs = fromProviders(
+    classOf[Flight],
+    classOf[TrainedModel],
+    classOf[FlightWithDate]
+  )
   private val codecRegistry = fromRegistries(codecs, DEFAULT_CODEC_REGISTRY)
 
   val mongodbUri = uri.format(username, passwd, host)
@@ -48,13 +66,19 @@ object MongoDBUtils {
       .withCodecRegistry(codecRegistry)
 
   def exec[R, T <: Observable[R]](f: MongoClient => T) = {
-    Using(getClient) { c =>
+    rtl.lock()
+    val r = Using(getClient) { c =>
       f(c).results
     }
+    rtl.unlock()
+    r
   }
 
   def execInsert(f: MongoClient => SingleObservable[InsertOneResult]) =
     exec[InsertOneResult, SingleObservable[InsertOneResult]](f)
+
+  def execInsertMany(f: MongoClient => Observable[InsertManyResult]) =
+    exec[InsertManyResult, Observable[InsertManyResult]](f)
 
   def execFind[T](f: MongoClient => FindObservable[T]) =
     exec[T, FindObservable[T]](f)
@@ -65,13 +89,57 @@ object MongoDBUtils {
   ): Try[Seq[InsertOneResult]] =
     execInsert(x => getCollection[T](x, collection).insertOne(doc))
 
+  def insertMany[T: ClassTag](
+      docs: Seq[T],
+      collection: String
+  ): Try[Seq[InsertManyResult]] = {
+    execInsertMany(x => getCollection[T](x, collection).insertMany(docs))
+  }
+
   def find[T: ClassTag](filter: Bson, collection: String): Try[Seq[T]] =
     execFind[T](x =>
       if (Nil equals filter) getCollection[T](x, collection).find()
       else getCollection[T](x, collection).find(filter)
     )
 
+  def findByOrder[T: ClassTag](
+      filter: Bson,
+      order: Bson,
+      limit: Int,
+      collection: String
+  ): Try[Seq[T]] =
+    execFind[T](x =>
+      if (Nil equals filter)
+        getCollection[T](x, collection).find().sort(order).limit(limit)
+      else getCollection[T](x, collection).find(filter).sort(order).limit(limit)
+    )
+
+  def retrieveTrainingData(num: Int) =
+    findByOrder[Flight](
+      new BsonDocument,
+      equal("timestamp", -1),
+      num,
+      COLLECTION_FLIGHTS
+    )
+
   def insertFlights(flight: Flight) = insert[Flight](flight, COLLECTION_FLIGHTS)
+
+  def insertManyFlights(flights: Seq[Flight]) =
+    insertMany[Flight](flights, COLLECTION_FLIGHTS)
+
+  def insertFlightWithDates(flightWithDate: FlightWithDate) =
+    insert[FlightWithDate](flightWithDate, COLLECTION_FLIGHTS)
+
+  def insertManyFlightWithDates(flightWithDates: Seq[FlightWithDate]) = {
+    val chunksSize = 100000
+    val parts: Iterable[Seq[(FlightWithDate, Int)]] =
+      flightWithDates.zipWithIndex
+        .groupBy(_._2 / chunksSize)
+        .values
+    for (p: Seq[(FlightWithDate, Int)] <- parts) {
+      insertMany[FlightWithDate](p.map(_._1), COLLECTION_FLIGHTS)
+    }
+  }
 
   def insertModels(fpModel: TrainedModel) =
     insert[TrainedModel](fpModel, COLLECTION_MODEL)

@@ -3,6 +3,7 @@ package com.neu.edu.FlightPricePrediction.db
 import com.neu.edu.FlightPricePrediction.configure.Constants.{
   CONFIG_LOCATION,
   S3_ACCESSKEY,
+  S3_BUCKET,
   S3_CONFIG_PREFIX,
   S3_ENDPOINT,
   S3_SECRETKEY
@@ -12,7 +13,7 @@ import org.apache.commons.io.IOUtils
 
 import java.io.{ByteArrayInputStream, File, FileOutputStream}
 import io.minio.MinioClient
-import io.minio.errors.{ErrorResponseException}
+import io.minio.errors.ErrorResponseException
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.{Failure, Success, Try, Using}
@@ -25,7 +26,7 @@ object MinioOps {
   val endpoint = s3Config.getString(S3_ENDPOINT)
   val accessKey = s3Config.getString(S3_ACCESSKEY)
   val secretKey = s3Config.getString(S3_SECRETKEY)
-
+  val bucket = s3Config.getString(S3_BUCKET)
   // minio client with access key and secret key
   val minioClient = new MinioClient(endpoint, accessKey, secretKey)
 
