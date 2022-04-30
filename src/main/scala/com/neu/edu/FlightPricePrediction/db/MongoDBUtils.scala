@@ -139,8 +139,6 @@ object MongoDBUtils {
     for (p: Seq[(FlightWithDate, Int)] <- parts) {
       insertMany[FlightWithDate](p.map(_._1), COLLECTION_FLIGHTS)
     }
-
-    insertMany[FlightWithDate](flightWithDates, COLLECTION_FLIGHTS)
   }
 
   def insertModels(fpModel: TrainedModel) =

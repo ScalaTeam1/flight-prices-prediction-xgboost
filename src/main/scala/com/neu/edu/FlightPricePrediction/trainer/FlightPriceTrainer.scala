@@ -26,7 +26,7 @@ import org.apache.spark.ml.feature.{
   VectorAssembler
 }
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
-import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.sql.{Dataset, SparkSession, functions}
 import org.apache.spark.sql.types.{
   FloatType,
   IntegerType,
@@ -271,9 +271,9 @@ object FlightPriceTrainer extends App {
     ds
   }
 
-//  val ds = loadDataNative(spark, dataPath)
+  val ds = loadDataNative(spark, dataPath)
 //  val ds = loadDataTableParser(dataPath)
-  val ds = retrieveDataFromMongoDB.get
+//  val ds = retrieveDataFromMongoDB.get
 
   val trainer = FlightPriceTrainer(modelId, ds)
 

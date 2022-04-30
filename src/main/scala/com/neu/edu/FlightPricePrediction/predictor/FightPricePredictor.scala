@@ -23,7 +23,7 @@ case class FightPricePredictor(
   }
 }
 
-object FightPricePredictor extends App {
+object FightPricePredictor {
 
   def apply(
       modelId: String,
@@ -43,21 +43,21 @@ object FightPricePredictor extends App {
   val preprocessorPath =
     persistenceConfig.getString(PREPROCESSOR_PATH).format(modelId)
 
-  val sparkConfig =
-    ConfigFactory.load(CONFIG_LOCATION).getConfig(SPARK_CONFIG_PREFIX)
-
-  val spark = SparkSession
-    .builder()
-    .appName(sparkConfig.getString(APP_NAME))
-    .config(SPARK_MASTER, SPARK_LOCAL)
-    .getOrCreate()
-
-  val predictor =
-    apply(modelId, loadModel(modelPath), loadPreprocessModel(preprocessorPath))
-
-  val input = FlightReader(dataPath)
-
-  val output = predictor.predict(input.dy)
-
-  output foreach (x => x.show())
+//  val sparkConfig =
+//    ConfigFactory.load(CONFIG_LOCATION).getConfig(SPARK_CONFIG_PREFIX)
+//
+//  val spark = SparkSession
+//    .builder()
+//    .appName(sparkConfig.getString(APP_NAME))
+//    .config(SPARK_MASTER, SPARK_LOCAL)
+//    .getOrCreate()
+//
+//  val predictor =
+//    apply(modelId, loadModel(modelPath), loadPreprocessModel(preprocessorPath))
+//
+//  val input = FlightReader(dataPath)
+//
+//  val output = predictor.predict(input.dy)
+//
+//  output foreach (x => x.show())
 }
